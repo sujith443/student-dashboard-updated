@@ -167,7 +167,7 @@ const Dashboard = () => {
           <div className="col-md-4">
             <div className="card bg-primary text-white">
               <div className="card-body text-center">
-                <h3>{attendance?.total || 0}</h3>
+                <h3>{attendance?.overall?.total || 0}</h3>
                 <p className="mb-0">Total Classes</p>
               </div>
             </div>
@@ -306,9 +306,10 @@ const Dashboard = () => {
 
         <div className="row">
           {/* Today's Schedule */}
+          {/* Today's Schedule */}
           <div className="col-md-6">
             <div className="card mb-4">
-              <div className="card-header d-flex align-items-center">
+              <div className="card-header d-flex align-items-center bg-primary text-white">
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
                   width="18"
@@ -324,7 +325,7 @@ const Dashboard = () => {
                   <circle cx="12" cy="12" r="10"></circle>
                   <polyline points="12 6 12 12 16 14"></polyline>
                 </svg>
-                <span>Today's Schedule</span>
+                <span>Today's Schedule ({today})</span>
               </div>
               <div className="card-body">
                 {todayClasses.length > 0 ? (
@@ -332,31 +333,85 @@ const Dashboard = () => {
                     <table className="table table-hover">
                       <thead className="table-light">
                         <tr>
-                          <th>Subject</th>
                           <th>Time</th>
+                          <th>Subject</th>
+                          <th>Room</th>
+                          <th>Faculty</th>
                         </tr>
                       </thead>
                       <tbody>
-                        {todayClasses.map((cls, index) => (
-                          <tr key={index}>
-                            <td>{cls.subject}</td>
-                            <td>
-                              {cls.start_time} - {cls.end_time}
-                            </td>
-                          </tr>
-                        ))}
+                        {todayClasses
+                          .sort((a, b) => {
+                            // Sort by time if available, otherwise by period
+                            if (a.start_time && b.start_time) {
+                              return a.start_time.localeCompare(b.start_time);
+                            } else if (a.period && b.period) {
+                              return a.period - b.period;
+                            }
+                            return 0;
+                          })
+                          .map((cls, index) => (
+                            <tr
+                              key={index}
+                              className={
+                                cls.subject.includes("Lab") ? "table-info" : ""
+                              }
+                            >
+                              <td>
+                                {cls.start_time && cls.end_time
+                                  ? `${cls.start_time} - ${cls.end_time}`
+                                  : cls.period
+                                  ? `Period ${cls.period}`
+                                  : "N/A"}
+                              </td>
+                              <td>
+                                <strong>{cls.subject}</strong>
+                              </td>
+                              <td>{cls.room || "N/A"}</td>
+                              <td>{cls.faculty || "N/A"}</td>
+                            </tr>
+                          ))}
                       </tbody>
                     </table>
                   </div>
                 ) : (
-                  <p className="text-center py-3">
-                    No classes scheduled for today
-                  </p>
+                  <div className="text-center py-4">
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      width="48"
+                      height="48"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="2"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      className="text-muted mb-3"
+                    >
+                      <rect
+                        x="3"
+                        y="4"
+                        width="18"
+                        height="18"
+                        rx="2"
+                        ry="2"
+                      ></rect>
+                      <line x1="16" y1="2" x2="16" y2="6"></line>
+                      <line x1="8" y1="2" x2="8" y2="6"></line>
+                      <line x1="3" y1="10" x2="21" y2="10"></line>
+                    </svg>
+                    <p className="mb-0">No classes scheduled for today</p>
+                    <small className="text-muted">Enjoy your free time!</small>
+                  </div>
                 )}
+              </div>
+              <div className="card-footer bg-white text-center">
+                <Link to="/timetable" className="btn btn-outline-primary">
+                  View Full Timetable
+                </Link>
               </div>
             </div>
           </div>
-
           {/* Attendance Chart */}
           <div className="col-md-6">
             <div className="card mb-4">
